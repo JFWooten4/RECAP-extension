@@ -1,6 +1,44 @@
 // JavaScript for the options page/popup.
 import { updateToolbarButton } from './utils/toolbar_button.js';
 
+async function renderSpending() {
+  const items = await chrome.storage.local.get([RECAPSpend.KEY, RECAPSpend.ADJUSTMENTS_KEY]);
+  const totals = RECAPSpend.summary(items[RECAPSpend.KEY], RECAPSpend.quarter(),
+    items[RECAPSpend.ADJUSTMENTS_KEY] || {});
+  document.getElementById('spend-period').textContent = totals.quarter;
+  document.getElementById('spend-total').textContent = RECAPSpend.dollars(totals.total);
+  document.getElementById('spend-progress').value = Math.min(totals.total, totals.threshold);
+  document.getElementById('spend-remaining').textContent = totals.total <= totals.threshold ?
+    RECAPSpend.dollars(totals.remaining) + ' until the waiver threshold' :
+    'Above $30: the full quarter is billable';
+  document.getElementById('spend-breakdown').textContent =
+    'Receipts ' + RECAPSpend.dollars(totals.confirmed) +
+    ' · Estimates ' + RECAPSpend.dollars(totals.estimated) +
+    ' · Other ' + RECAPSpend.dollars(totals.other) +
+    ' · Unresolved ' + totals.unresolved;
+  document.getElementById('spend-adjustment').value = (totals.other / 100).toFixed(2);
+}
+document.getElementById('spend-adjustment-save').addEventListener('click', async () => {
+  const input = document.getElementById('spend-adjustment');
+  const amount = Number(input.value);
+  if (!Number.isFinite(amount) || amount < 0 || amount > 100000) {
+    input.setCustomValidity('Enter a valid nonnegative amount.');
+    input.reportValidity();
+    return;
+  }
+  input.setCustomValidity('');
+  const saved = await chrome.storage.local.get(RECAPSpend.ADJUSTMENTS_KEY);
+  const adjustments = saved[RECAPSpend.ADJUSTMENTS_KEY] || {};
+  adjustments[RECAPSpend.quarter()] = Math.round(amount * 100);
+  await chrome.storage.local.set({[RECAPSpend.ADJUSTMENTS_KEY]: adjustments});
+  await renderSpending();
+});
+void renderSpending();
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && (changes[RECAPSpend.KEY] || changes[RECAPSpend.ADJUSTMENTS_KEY]))
+    void renderSpending();
+});
+
 let inputs = document.getElementsByTagName('input');
 
 function removeInfoBanner() {

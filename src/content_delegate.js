@@ -507,11 +507,30 @@ ContentDelegate.prototype.onDocumentViewSubmit = async function (event) {
     method: form.method,
     body: data
   });
+  if (resp.ok === false) throw new Error('PACER document retrieval failed');
+  const responseBlob = await resp.blob();
+  const contentType = resp.headers.get('Content-Type') || '';
+  const isAudio = /\bAUDIO\b/i.test(previousPageHtml) ||
+    /^(?:audio\/|application\/(?:mp3|mpeg))/i.test(contentType);
+  if (isAudio && globalThis.RECAPSpend && chrome.runtime && chrome.runtime.sendMessage) {
+    await RECAPSpend.capture(new DOMParser().parseFromString(previousPageHtml, 'text/html'),
+      {kind: 'audio', court: this.court});
+  }
+  if (/^(?:audio\/|application\/(?:mp3|mpeg))/i.test(contentType)) {
+    // Audio is a purchased download, not a PDF for the RECAP archive.
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(responseBlob);
+    a.download = 'pacer-audio';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return;
+  }
 
   let requestHandler = handleDocFormResponse.bind(this);
   requestHandler(
     resp.headers.get('Content-Type'),
-    await resp.blob(),
+    responseBlob,
     null,
     previousPageHtml,
     pdfData
@@ -760,7 +779,14 @@ ContentDelegate.prototype.onDownloadAllSubmit = async function (event) {
   );
   const zipUrl = extractUrl(htmlPage);
   //download zip file and save it to chrome storage
-  const blob = await fetch(zipUrl).then((res) => res.blob());
+  const blob = await fetch(zipUrl).then((res) => {
+    if (res.ok === false) throw new Error('PACER ZIP retrieval failed');
+    return res.blob();
+  });
+  // Capture a completed ZIP purchase before attempting the optional RECAP upload.
+  if (globalThis.RECAPSpend && chrome.runtime && chrome.runtime.sendMessage) {
+    await RECAPSpend.capture(document, {kind: 'zip', blob, court: this.court});
+  }
   const dataUrl = await blobToDataURL(blob);
   console.info('RECAP: Downloaded zip file');
   // save blob in storage under tabId
@@ -973,6 +999,7 @@ ContentDelegate.prototype.onDownloadSubmit = async function (event) {
       : window.fetch;
 
   const documentRequest = await browserSpecificFetch(event.data.id);
+  if (documentRequest.ok === false) throw new Error('PACER document retrieval failed');
   let documentBlob = await documentRequest.blob();
 
   let requestHandler = handleDocFormResponse.bind(this);

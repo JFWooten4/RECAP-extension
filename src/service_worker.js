@@ -15,8 +15,19 @@ import {
 import { handleBackgroundFetch } from './utils/background_fetch.js';
 import { handleBackgroundNotification } from './utils/background_notifier.js';
 import { getDocumentURL } from './utils/acms_api.js';
+import './spend_tracker.js';
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.message === 'recordPacerSpend') {
+    if (!sender.tab || !sender.url || !/^https:\/\/(?:[\w.-]+\.uscourts\.gov|[\w.-]+\.azurewebsites\.us)\//i.test(sender.url)) {
+      sendResponse({error: 'Untrusted PACER origin'});
+      return false;
+    }
+    RECAPSpend.record(chrome.storage.local, msg.transaction)
+      .then(saved => sendResponse({saved}))
+      .catch(error => sendResponse({error: error.message}));
+    return true;
+  }
   if (msg.message === 'requestTabId') {
     sendResponse({ tabId: sender.tab.id });
   }

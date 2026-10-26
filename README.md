@@ -134,3 +134,19 @@ RECAP for Chrome.  If not, see: http://www.gnu.org/licenses/
 [commits]: https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#-git-commit-guidelines
 [qa]: https://github.com/freelawproject/recap/wiki/QA-Testing
 [jq]: https://jqlang.github.io/jq/
+
+
+### Local quarterly PACER spending estimate
+
+The Settings tab tracks intercepted PDF, ZIP, and audio purchases by calendar
+quarter against PACER's $30 waiver. Exact receipt charges take priority over
+estimated charges. PDFs are estimated from page counts at $0.10/page, normally
+capped at $3 per document; transcripts are uncapped. ZIPs are itemized so each
+PDF gets a separate cap. Audio defaults to $2.40 when no receipt is readable.
+Unsupported files are reported as unresolved, not silently assigned a charge.
+
+All history remains in local browser storage, never sent to CourtListener.
+The quarterly meter changes on January 1, April 1, July 1, and October 1.
+Searches, docket reports, fee exemptions, other accounts and purchases outside
+the interceptor are not tracked. Enter missed charges in the Other PACER
+charges field and reconcile with your authoritative PACER statement.

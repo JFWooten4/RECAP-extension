@@ -29,6 +29,7 @@ module.exports = function(config) {
       'src/utils/fetch.js',
       'src/utils/notifier.js',
       'src/pacer.js',
+       'src/spend_tracker.js',
       { pattern: 'src/utils/url_and_cookie_helpers.js', type: 'module' },
       { pattern: 'src/utils/toolbar_button.js', type: 'module' },
       'src/utils.js',

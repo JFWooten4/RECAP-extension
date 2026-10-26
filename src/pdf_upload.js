@@ -217,6 +217,16 @@ const showAndUploadPdf = async function (
 
   let blob = await downloadDataFromIframe(match, this.tabId);
   if (!blob) return document.documentElement.innerHTML = html_elements;
+  // Account for the completed transaction separately from archive upload success.
+  // ACMS and audio receipts are recorded in their respective handlers.
+  if (globalThis.RECAPSpend && chrome.runtime && chrome.runtime.sendMessage &&
+      !/\bAUDIO\b/i.test(previousPageHtml) && !this.acmsDocumentGuid) {
+    const receipt = new DOMParser().parseFromString(previousPageHtml, 'text/html');
+    await RECAPSpend.capture(receipt, {
+      kind: 'pdf', blob, court: this.court,
+      transcript: /\bTRANSCRIPT\b/i.test(previousPageHtml),
+    });
+  }
   let blobUrl = URL.createObjectURL(blob);
   let pacer_case_id;
 

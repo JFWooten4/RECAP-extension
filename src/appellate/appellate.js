@@ -674,6 +674,7 @@ AppellateDelegate.prototype.handleAcmsDownloadPage = async function () {
         docketEntryData.documentCount > 1 ? docData.documentNumber : null,
     };
 
+    const spendReceipt = modal.cloneNode(true);
     // Remove element from the page to show loading message
     let mainDiv = modal.querySelector('.modal-body');
     mainDiv.innerHTML = '';
@@ -691,10 +692,18 @@ AppellateDelegate.prototype.handleAcmsDownloadPage = async function () {
       mergePdfFilesRequest: pdfFileRequestBody,
     });
     const resp = await window.fetch(pdf_url, { method: 'GET' });
+    if (resp.ok === false) throw new Error('PACER appellate retrieval failed');
+    const pdfBlob = await resp.blob();
+    if (globalThis.RECAPSpend && chrome.runtime && chrome.runtime.sendMessage) {
+      await RECAPSpend.capture(spendReceipt, {
+        kind: 'pdf', blob: pdfBlob, court: this.court,
+        explicitCost: docData.cost, pages: docData.billablePages,
+      });
+    }
     let requestHandler = handleDocFormResponse.bind(this);
     requestHandler(
       resp.headers.get('Content-Type'),
-      await resp.blob(),
+      pdfBlob,
       null,
       previousPageHtml,
       documentSummary
