@@ -62,6 +62,14 @@
     </header>
 
     <main>
+            <div class="alert d-none" id="spend-warning" role="status">
+              <strong>Quarter ending soon!</strong>
+              <p id="spend-warning-details" class="mb-1"></p>
+              <a id="spend-wishlist" href="https://www.courtlistener.com/prayers/top/"
+                target="_blank" rel="noopener">Browse Free Law Project's most-requested documents</a>
+              <p class="mb-0 mt-2 small">The $30 limit is a billing waiver, not prepaid credit.
+                Do not exceed the threshold expecting a free allowance.</p>
+            </div>
       <div class="tab-content" id="nav-recap-tabContent">
 
         <!-- The Search Tab -->
@@ -134,6 +142,11 @@
           </fieldset>
           <fieldset id="pacer-spending">
             <legend>Quarterly PACER spending</legend>
+            <label class="d-block" for="quarterly_spend_reminders">
+              <input type="checkbox" id="quarterly_spend_reminders">
+              Remind me during the last 3 days if I'm under $30
+            </label>
+
             <p id="spend-period">Current calendar quarter</p>
             <p class="mb-1"><strong id="spend-total">$0.00</strong> of the $30 quarterly waiver threshold</p>
             <progress id="spend-progress" max="3000" value="0" style="width: 100%;"></progress>

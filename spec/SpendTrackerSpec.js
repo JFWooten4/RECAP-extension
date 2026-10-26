@@ -47,3 +47,34 @@ describe('PACER quarterly spending tracker', () => {
     expect(RECAPSpend.summary(map[RECAPSpend.KEY], '2026-Q4').total).toBe(200);
   });
 });
+
+describe('Quarter-end PACER reminder', () => {
+  const ledger = [{when: '2026-12-15T12:00:00Z', cents: 1950, source: 'receipt'}];
+  it('finds Eastern quarter boundaries on either side of daylight-saving time', () => {
+    expect(RECAPSpend.nextQuarterStart('2026-12-15T12:00:00Z').toISOString())
+      .toBe('2027-01-01T05:00:00.000Z');
+    expect(RECAPSpend.nextQuarterStart('2026-03-29T12:00:00Z').toISOString())
+      .toBe('2026-04-01T04:00:00.000Z');
+  });
+  it('waits until strictly fewer than 72 hours remain', () => {
+    const state = RECAPSpend.endOfQuarterState(ledger, {}, '2026-12-29T05:00:00Z');
+    expect(state.active).toBe(false);
+    expect(state.remaining).toBe(1050);
+  });
+  it('warns below the waiver threshold in the final 72 hours', () => {
+    const state = RECAPSpend.endOfQuarterState(ledger, {}, '2026-12-29T05:01:00Z');
+    expect(state.active).toBe(true);
+    expect(state.remaining).toBe(1050);
+  });
+  it('stops warning when there is no remaining waiver room', () => {
+    const state = RECAPSpend.endOfQuarterState(ledger, {'2026-Q4': 1050},
+      '2026-12-30T20:00:00Z');
+    expect(state.active).toBe(false);
+  });
+  it('resets the warning at the new quarter without deleting past history', () => {
+    const state = RECAPSpend.endOfQuarterState(ledger, {},
+      '2027-01-01T05:00:00Z');
+    expect(state.active).toBe(false);
+    expect(state.quarter).toBe('2027-Q1');
+  });
+});

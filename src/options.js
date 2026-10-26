@@ -17,6 +17,19 @@ async function renderSpending() {
     ' · Other ' + RECAPSpend.dollars(totals.other) +
     ' · Unresolved ' + totals.unresolved;
   document.getElementById('spend-adjustment').value = (totals.other / 100).toFixed(2);
+  const settings = await chrome.storage.local.get('options');
+  const warning = RECAPSpend.endOfQuarterState(items[RECAPSpend.KEY],
+    items[RECAPSpend.ADJUSTMENTS_KEY] || {});
+  const visible = (settings.options || {}).quarterly_spend_reminders !== false && warning.active;
+  document.getElementById('spend-warning').classList.toggle('d-none', !visible);
+  if (visible) {
+    const hours = Math.ceil(warning.msLeft / (60 * 60 * 1000));
+    document.getElementById('spend-warning-details').textContent =
+      RECAPSpend.dollars(warning.remaining) +
+      ' below the $30 quarterly PACER waiver threshold with about ' +
+      hours + ' hours left. No documents of your own to retrieve? ' +
+      'Help fulfill a request from the RECAP community.';
+  }
 }
 document.getElementById('spend-adjustment-save').addEventListener('click', async () => {
   const input = document.getElementById('spend-adjustment');

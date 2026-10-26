@@ -16,6 +16,9 @@ import { handleBackgroundFetch } from './utils/background_fetch.js';
 import { handleBackgroundNotification } from './utils/background_notifier.js';
 import { getDocumentURL } from './utils/acms_api.js';
 import './spend_tracker.js';
+import { installQuarterlySpendReminder } from './utils/spend_reminder.js';
+
+installQuarterlySpendReminder();
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.message === 'recordPacerSpend') {

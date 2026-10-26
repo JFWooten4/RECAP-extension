@@ -18,6 +18,43 @@ globalThis.RECAPSpend = (() => {
     return year + '-Q' + (Math.floor((month - 1) / 3) + 1);
   }
 
+  // PACER's next quarter starts at midnight US Eastern, not the browser's timezone.
+  function nextQuarterStart(date = new Date()) {
+    const current = quarter(date);
+    if (!current) return null;
+    const [yearText, qText] = current.split('-Q');
+    const year = Number(yearText) + (qText === '4' ? 1 : 0);
+    const monthIndex = qText === '4' ? 0 : Number(qText) * 3;
+    // Noon UTC is always on the boundary date in Eastern time, so the
+    // local wall clock at this probe captures the correct DST offset.
+    const probe = new Date(Date.UTC(year, monthIndex, 1, 12));
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York', year: 'numeric', month: 'numeric',
+      day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23',
+    }).formatToParts(probe);
+    const get = type => Number(parts.find(p => p.type === type).value);
+    const localClockAsUtc = Date.UTC(get('year'), get('month') - 1, get('day'),
+      get('hour'), get('minute'));
+    return new Date(Date.UTC(year, monthIndex, 1) -
+      (localClockAsUtc - probe.getTime()));
+  }
+
+  function endOfQuarterState(entries, adjustments = {}, at = new Date()) {
+    const now = new Date(at);
+    const period = quarter(now);
+    const boundary = nextQuarterStart(now);
+    if (!boundary || !period) {
+      return {active: false, quarter: null, remaining: 0, msLeft: 0};
+    }
+    const totals = summary(entries, period, adjustments);
+    const msLeft = boundary.getTime() - now.getTime();
+    return {
+      active: msLeft > 0 && msLeft < 72 * 60 * 60 * 1000 && totals.remaining > 0,
+      quarter: period, remaining: totals.remaining, msLeft, totals,
+      boundary: boundary.toISOString(),
+    };
+  }
+
   function money(text) {
     const match = String(text || '').match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
     return match ? Math.round(Number(match[1].replace(/,/g, '')) * 100) : null;
@@ -255,6 +292,7 @@ globalThis.RECAPSpend = (() => {
       remaining: Math.max(0, THRESHOLD - total), threshold: THRESHOLD, count: transactions.length};
   }
 
-  return {KEY, ADJUSTMENTS_KEY, quarter, money, dollars, pagesToCents, receipt,
+  return {KEY, ADJUSTMENTS_KEY, quarter, nextQuarterStart, endOfQuarterState,
+    money, dollars, pagesToCents, receipt,
     receiptPages, pdfPages, zipPages, calculate, capture, record, summary};
 })();

@@ -654,3 +654,17 @@ footer #version {
     display: none;
   }
 }
+
+
+/* High-contrast quarter-end alert in the RECAP popup. */
+#options-body #spend-warning {
+  background: #fff0a8;
+  border: 2px solid #fa7100;
+  color: #4d2400;
+  box-shadow: 0 0 0 2px #ffd36e;
+}
+#options-body #spend-warning a {
+  color: #713500;
+  font-weight: 700;
+  text-decoration: underline;
+}

@@ -150,3 +150,21 @@ The quarterly meter changes on January 1, April 1, July 1, and October 1.
 Searches, docket reports, fee exemptions, other accounts and purchases outside
 the interceptor are not tracked. Enter missed charges in the Other PACER
 charges field and reconcile with your authoritative PACER statement.
+
+
+### Quarter-end spending reminder
+
+When the local estimate is below the $30 quarterly waiver threshold and
+**less than 72 hours** remain (US Eastern time), RECAP displays a vivid orange
+**!** toolbar badge, a high-contrast warning in Settings, and one browser
+notification per quarter. The notification and popup link to CourtListener's
+[Pray and Pay leaderboard](https://www.courtlistener.com/prayers/top/),
+where users can help fulfill requests for PACER documents from the community.
+An hourly browser alarm checks the deadline even when the popup is closed;
+changes to the ledger or settings also refresh the warning. The reminder
+may be disabled in Settings.
+
+The waiver is **not prepaid credit**. If charges exceed $30, all normally
+billable charges become payable. RECAP's ledger is an incomplete local
+estimate, not PACER's official account balance; verify usage before making
+additional purchases.

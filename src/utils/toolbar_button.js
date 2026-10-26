@@ -14,6 +14,7 @@
 
 // -------------------------------------------------------------------------
 // Toolbar button for RECAP (or "browser action" in Chrome parlance).
+import '../spend_tracker.js';
 import {
   areTransactionReceiptsDisabled,
   getCourtFromUrl,
@@ -31,12 +32,25 @@ export function updateToolbarButton(tab) {
     chrome.action.setIcon({ path: icon });
   };
 
-  chrome.storage.local.get('options', function (items) {
-    if (!Object.keys(items).length) {
-      // Firefox 56 bug. The default settings didn't get created properly when
-      // upgrading from the legacy extension. This can be removed when everybody
-      // is safely beyond 56 (and the ESR)
+  chrome.storage.local.get(['options', RECAPSpend.KEY, RECAPSpend.ADJUSTMENTS_KEY], function (items) {
+    if (!items.options) {
       setDefaultOptions({});
+      return;
+    }
+
+    const warning = RECAPSpend.endOfQuarterState(
+      items[RECAPSpend.KEY], items[RECAPSpend.ADJUSTMENTS_KEY] || {});
+    if (items.options.quarterly_spend_reminders !== false && warning.active) {
+      chrome.action.setBadgeText({text: '!'});
+      chrome.action.setBadgeTextColor({color: '#ffffff'});
+      chrome.action.setBadgeBackgroundColor({color: '#ff6200'});
+      setTitleIcon(RECAPSpend.dollars(warning.remaining) +
+        ' below the quarterly PACER waiver threshold; less than 3 days left. ' +
+        'Open RECAP for the Pray and Pay wishlist.', {
+          19: 'assets/images/warning-19.png',
+          38: 'assets/images/warning-38.png',
+        });
+      return;
     }
 
     if (
@@ -123,6 +137,7 @@ export function setDefaultOptions(details) {
       recap_enabled: true,
       recap_link_popups: true,
       show_notifications: true,
+      quarterly_spend_reminders: true,
       dismiss_news_badge: true,
 
       // Radio button
