@@ -7,10 +7,12 @@ async function renderSpending() {
     items[RECAPSpend.ADJUSTMENTS_KEY] || {});
   document.getElementById('spend-period').textContent = totals.quarter;
   document.getElementById('spend-total').textContent = RECAPSpend.dollars(totals.total);
+  document.getElementById('spend-threshold').textContent = RECAPSpend.dollars(totals.threshold);
+  document.getElementById('spend-progress').max = totals.threshold;
   document.getElementById('spend-progress').value = Math.min(totals.total, totals.threshold);
   document.getElementById('spend-remaining').textContent = totals.total <= totals.threshold ?
     RECAPSpend.dollars(totals.remaining) + ' until the waiver threshold' :
-    'Above $30: the full quarter is billable';
+    'Above ' + RECAPSpend.dollars(totals.threshold) + ': the full quarter is billable';
   document.getElementById('spend-breakdown').textContent =
     'Receipts ' + RECAPSpend.dollars(totals.confirmed) +
     ' · Estimates ' + RECAPSpend.dollars(totals.estimated) +
@@ -26,7 +28,8 @@ async function renderSpending() {
     const hours = Math.ceil(warning.msLeft / (60 * 60 * 1000));
     document.getElementById('spend-warning-details').textContent =
       RECAPSpend.dollars(warning.remaining) +
-      ' below the $30 quarterly PACER waiver threshold with about ' +
+      ' below the ' + RECAPSpend.dollars(totals.threshold) +
+      ' quarterly PACER waiver threshold with about ' +
       hours + ' hours left. No documents of your own to retrieve? ' +
       'Help fulfill a request from the RECAP community.';
   }

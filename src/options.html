@@ -65,9 +65,13 @@
             <div class="alert d-none" id="spend-warning" role="status">
               <strong>Quarter ending soon!</strong>
               <p id="spend-warning-details" class="mb-1"></p>
-              <a id="spend-wishlist" href="https://www.courtlistener.com/prayers/top/"
-                target="_blank" rel="noopener">Browse Free Law Project's most-requested documents</a>
-              <p class="mb-0 mt-2 small">The $30 limit is a billing waiver, not prepaid credit.
+              <div class="d-flex flex-column gap-1">
+                <a id="spend-wishlist" href="https://www.courtlistener.com/prayers/top/"
+                  target="_blank" rel="noopener">Browse Free Law Project's most-requested documents</a>
+                <a href="https://pacer.psc.uscourts.gov/pscof/manage/stmtView.jsf"
+                  target="_blank" rel="noopener">Check your official PACER statement</a>
+              </div>
+              <p class="mb-0 mt-2 small">The waiver is not prepaid credit.
                 Do not exceed the threshold expecting a free allowance.</p>
             </div>
       <div class="tab-content" id="nav-recap-tabContent">
@@ -144,11 +148,11 @@
             <legend>Quarterly PACER spending</legend>
             <label class="d-block" for="quarterly_spend_reminders">
               <input type="checkbox" id="quarterly_spend_reminders">
-              Remind me during the last 3 days if I'm under $30
+              Remind me during the last 3 days if I'm below the waiver threshold
             </label>
 
             <p id="spend-period">Current calendar quarter</p>
-            <p class="mb-1"><strong id="spend-total">$0.00</strong> of the $30 quarterly waiver threshold</p>
+            <p class="mb-1"><strong id="spend-total">$0.00</strong> of the <span id="spend-threshold">$30.00</span> quarterly waiver threshold</p>
             <progress id="spend-progress" max="3000" value="0" style="width: 100%;"></progress>
             <p id="spend-remaining" class="mb-1"></p>
             <p id="spend-breakdown" class="small"></p>
@@ -158,9 +162,24 @@
                 id="spend-adjustment" value="0.00">
               <button type="button" class="btn btn-primary" id="spend-adjustment-save">Save</button>
             </div>
-            <p class="small mt-2">Local estimate, not an official PACER balance.
+            <div class="d-flex flex-column gap-1 mt-2 mb-2">
+              <a href="https://www.courtlistener.com/prayers/top/" target="_blank" rel="noopener">
+                Free Law Project's Pray and Pay document wishlist
+              </a>
+              <a href="https://pacer.psc.uscourts.gov/pscof/manage/stmtView.jsf"
+                target="_blank" rel="noopener">
+                Check official PACER statement / billing
+              </a>
+            </div>
+            <p class="small">For current-quarter charges, sign in to PACER,
+              choose Usage &gt; View Detailed Transactions, and select This Quarter.
+              The statement page may reflect completed billing periods only.</p>
+            <p class="small">Local estimate, not an official PACER balance.
               Searches, docket reports, missed downloads, and other accounts may not be captured.
-              Reconcile against PACER billing. The waiver is lost if quarterly charges exceed $30.</p>
+              The exact PACER billing cutoff time is not documented in the sources reviewed;
+              this tracker uses US Eastern midnight as its display convention.
+              Reconcile against PACER billing. Charges above the quarterly waiver threshold
+              make the otherwise billable total payable.</p>
           </fieldset>
           <!-- TBD: Optimize PACER.
               See https://github.com/freelawproject/recap/issues/207 -->

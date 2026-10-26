@@ -168,3 +168,24 @@ The waiver is **not prepaid credit**. If charges exceed $30, all normally
 billable charges become payable. RECAP's ledger is an incomplete local
 estimate, not PACER's official account balance; verify usage before making
 additional purchases.
+
+
+### PACER statement and Free Law document wishlist
+
+The spending meter and quarter-end notice provide two external links:
+
+- [CourtListener Pray and Pay wishlist](https://www.courtlistener.com/prayers/top/)
+  for purchasing requested documents that RECAP can archive.
+- [Official PACER statement](https://pacer.psc.uscourts.gov/pscof/manage/stmtView.jsf)
+  for confirming the actual account balance. For current-quarter transactions
+  use **Usage > View Detailed Transactions > This Quarter** in PACER Manage My
+  Account. The statement itself may represent a prior completed billing period.
+
+PACER has announced that on **January 1, 2027** the waiver increases from
+$30 to $40 per quarter and the page fee from $0.10 to $0.12 (capped at 30
+pages per ordinary document). The local tracker applies the published
+effective-date change automatically, retaining the 2026 schedule for earlier
+transactions. Its day-boundary convention is **America/New_York**, including
+daylight-saving changes. PACER publications reviewed confirm calendar-quarter
+billing, but do not explicitly certify the midnight Eastern-time boundary;
+the official statement takes precedence.

@@ -78,3 +78,20 @@ describe('Quarter-end PACER reminder', () => {
     expect(state.quarter).toBe('2027-Q1');
   });
 });
+
+describe('The 2027 PACER pricing update', () => {
+  it('retains the $30 waiver for all 2026 quarters', () => {
+    expect(RECAPSpend.thresholdForQuarter('2026-Q4')).toBe(3000);
+    expect(RECAPSpend.summary([], '2026-Q4').threshold).toBe(3000);
+  });
+  it('raises the waiver to $40 starting 2027 Q1', () => {
+    expect(RECAPSpend.thresholdForQuarter('2027-Q1')).toBe(4000);
+    expect(RECAPSpend.summary([], '2027-Q1').remaining).toBe(4000);
+  });
+  it('prices each PDF page at 12 cents beginning January 1, 2027', () => {
+    expect(RECAPSpend.pagesToCents(5, true, '2026-12-31T20:00:00Z')).toBe(50);
+    expect(RECAPSpend.pagesToCents(5, true, '2027-01-01T15:00:00Z')).toBe(60);
+    expect(RECAPSpend.pagesToCents(40, true, '2027-01-01T15:00:00Z')).toBe(360);
+    expect(RECAPSpend.pagesToCents(40, false, '2027-01-01T15:00:00Z')).toBe(480);
+  });
+});

@@ -3,13 +3,26 @@
 globalThis.RECAPSpend = (() => {
   const KEY = 'pacer_spend_ledger_v1';
   const ADJUSTMENTS_KEY = 'pacer_spend_adjustments_v1';
-  const THRESHOLD = 3000;
+  const THRESHOLD_2026 = 3000;
+  const THRESHOLD_2027 = 4000;
+
+  // The Judicial Conference announced the new fee and waiver effective 2027-01-01.
+  // Rates after the announced temporary five-year period should be rechecked.
+  function thresholdForQuarter(period) {
+    const year = Number(String(period).split('-Q')[0]);
+    return year >= 2027 ? THRESHOLD_2027 : THRESHOLD_2026;
+  }
+
+  function pageFeeCents(date = new Date()) {
+    const q = quarter(date);
+    return q && Number(q.slice(0, 4)) >= 2027 ? 12 : 10;
+  }
   let pending = Promise.resolve();
 
   function quarter(date = new Date()) {
     const d = new Date(date);
     if (Number.isNaN(d.getTime())) return null;
-    // PACER's billing calendar follows US Eastern dates, regardless of browser locale.
+    // Model calendar-quarter cutoff in Eastern time; PACER has not publicly confirmed its precise billing cutoff time.
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/New_York', year: 'numeric', month: 'numeric',
     }).formatToParts(d);
@@ -18,7 +31,7 @@ globalThis.RECAPSpend = (() => {
     return year + '-Q' + (Math.floor((month - 1) / 3) + 1);
   }
 
-  // PACER's next quarter starts at midnight US Eastern, not the browser's timezone.
+  // Our estimated quarter starts at midnight US Eastern, not the browser's timezone.
   function nextQuarterStart(date = new Date()) {
     const current = quarter(date);
     if (!current) return null;
@@ -64,10 +77,10 @@ globalThis.RECAPSpend = (() => {
     return '$' + (cents / 100).toFixed(2);
   }
 
-  function pagesToCents(pages, capped = true) {
+  function pagesToCents(pages, capped = true, at = new Date()) {
     const count = Number(pages);
     if (!Number.isSafeInteger(count) || count < 1) return null;
-    return Math.min(capped ? 30 : count, count) * 10;
+    return Math.min(capped ? 30 : count, count) * pageFeeCents(at);
   }
 
   function receipt(root) {
@@ -288,11 +301,12 @@ globalThis.RECAPSpend = (() => {
     }
     const other = Number.isSafeInteger(adjustments[forQuarter]) ? adjustments[forQuarter] : 0;
     const total = confirmed + estimated + other;
+    const threshold = thresholdForQuarter(forQuarter);
     return {quarter: forQuarter, confirmed, estimated, other, unresolved, total,
-      remaining: Math.max(0, THRESHOLD - total), threshold: THRESHOLD, count: transactions.length};
+      remaining: Math.max(0, threshold - total), threshold, count: transactions.length};
   }
 
   return {KEY, ADJUSTMENTS_KEY, quarter, nextQuarterStart, endOfQuarterState,
-    money, dollars, pagesToCents, receipt,
+    thresholdForQuarter, pageFeeCents, money, dollars, pagesToCents, receipt,
     receiptPages, pdfPages, zipPages, calculate, capture, record, summary};
 })();

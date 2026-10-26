@@ -6,6 +6,7 @@ const ALARM = 'recap-quarter-end-spend-check';
 const NOTIFICATION = 'recap-quarter-end-spend-reminder';
 const LAST_NOTICE_KEY = 'pacer_spend_last_notice_quarter';
 const WISHLIST = 'https://www.courtlistener.com/prayers/top/';
+const PACER_STATEMENT = 'https://pacer.psc.uscourts.gov/pscof/manage/stmtView.jsf';
 let sequence = Promise.resolve();
 
 async function refreshToolbar() {
@@ -24,16 +25,21 @@ async function check() {
       stored[LAST_NOTICE_KEY] === warning.quarter) return;
 
   const amount = RECAPSpend.dollars(warning.remaining);
+  const threshold = RECAPSpend.dollars(warning.totals.threshold);
   const hours = Math.ceil(warning.msLeft / (60 * 60 * 1000));
   try {
     await chrome.notifications.create(NOTIFICATION, {
       type: 'basic',
       iconUrl: chrome.runtime.getURL('assets/images/icon-128.png'),
       title: 'RECAP: PACER quarter ends soon',
-      message: amount + ' remains below the $30 quarterly waiver threshold (' +
-        hours + ' hours left). This is not prepaid credit. ' +
-        'No documents you need? Explore the community Pray and Pay wishlist.',
-      buttons: [{title: 'Browse document requests'}],
+      message: amount + ' remains below the ' + threshold +
+        ' quarterly waiver threshold (' + hours + ' hours left). ' +
+        'Verify with PACER before requesting more documents. ' +
+        'You can also help fulfill the Pray and Pay wishlist.',
+      buttons: [
+        {title: 'Check PACER statement'},
+        {title: 'Free Law wishlist'},
+      ],
       priority: 2,
     });
     // Mark only after a successful API call; never repeat within this quarter.
@@ -61,6 +67,12 @@ function openWishlist(notificationId) {
   }
 }
 
+function openReminderButton(notificationId, buttonIndex) {
+  if (notificationId !== NOTIFICATION) return;
+  if (buttonIndex === 0) chrome.tabs.create({url: PACER_STATEMENT});
+  if (buttonIndex === 1) chrome.tabs.create({url: WISHLIST});
+}
+
 export function installQuarterlySpendReminder() {
   chrome.alarms.onAlarm.addListener(alarm => {
     if (alarm.name === ALARM) void checkQuarterEnd();
@@ -75,7 +87,7 @@ export function installQuarterlySpendReminder() {
   });
   chrome.notifications.onClicked.addListener(openWishlist);
   if (chrome.notifications.onButtonClicked) {
-    chrome.notifications.onButtonClicked.addListener(openWishlist);
+    chrome.notifications.onButtonClicked.addListener(openReminderButton);
   }
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' &&
